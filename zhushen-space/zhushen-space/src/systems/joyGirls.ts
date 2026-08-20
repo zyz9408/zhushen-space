@@ -1,6 +1,7 @@
 import { JOY_PRIVATE_COLS, type JoyGirl, type JoySession } from '../store/joyStore';
 import { JOY_SYSTEM_RULE, JOY_OUTPUT_RULE, JOY_PRIVATE_FIELDS_RULE, NSFW_WRITING_RULE } from '../promptRules';
 import { getPrompt } from '../store/promptOverrideStore';   // 预设中心：主提示词 override
+import { appPath } from './appPath';
 
 /* 欢愉宫美女分阶段立绘清单（public/joy-girls/manifest.json，由 vite 插件 syncJoyGirls 生成）。
    结构：{ "<美女文件夹>": { "1":[相对路径...], "2":[...], "3":[...], "4":[...] } }
@@ -13,7 +14,7 @@ let _loading: Promise<GirlManifest> | null = null;
 export async function loadGirlManifest(): Promise<GirlManifest> {
   if (_manifest) return _manifest;
   if (_loading) return _loading;
-  _loading = fetch('/joy-girls/manifest.json')
+  _loading = fetch(appPath('joy-girls/manifest.json'))
     .then((r) => (r.ok ? r.json() : {}))
     .then((m) => { _manifest = ((m && typeof m === 'object') ? m : {}) as GirlManifest; return _manifest!; })
     .catch(() => { _manifest = {}; return _manifest!; });
@@ -31,7 +32,7 @@ export function stageFromDesire(desire: number): 1 | 2 | 3 | 4 {
 
 /** 把相对路径转成可用 URL（中文路径段逐段 encode）*/
 function toUrl(rel: string): string {
-  return '/joy-girls/' + rel.split('/').map(encodeURIComponent).join('/');
+  return appPath('joy-girls/' + rel.split('/').map(encodeURIComponent).join('/'));
 }
 
 /** 取某美女在某情欲值对应阶段的一张随机立绘 URL；空阶段就近回退。无图返回 null。*/

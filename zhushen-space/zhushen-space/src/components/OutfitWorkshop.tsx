@@ -10,6 +10,7 @@ import { packList, packGetImg, packPut, packKeys, packDel, packClearPack, type P
 import { outfitImageKey } from '../systems/outfit';
 import { outfitImgSet } from '../systems/outfitImages';
 import { shrinkDataUrl } from '../systems/imageGen';
+import { appPath } from '../systems/appPath';
 
 /* ════════════════════════════════════════════
    👗 形象工坊（右侧导航独立入口）——每个角色一个专属衣柜的总控台：
@@ -53,7 +54,7 @@ function PackLibrary({ charId, charName }: { charId: string; charName: string })
     let alive = true;
     (async () => {
       try {
-        const r = await fetch('/outfit-packs/manifest.json');
+        const r = await fetch(appPath('outfit-packs/manifest.json'));
         if (!r.ok) return;
         const j = await r.json();
         if (alive && Array.isArray(j)) setBuiltins(j.filter((p) => p && typeof p.name === 'string' && Array.isArray(p.shards)));
@@ -152,7 +153,7 @@ function PackLibrary({ charId, charName }: { charId: string; charName: string })
       const packs: ParsedPack[] = [];
       for (let i = 0; i < bp.shards.length; i++) {
         setMsg(`⬇ 下载「${bp.name}」分片 ${i + 1}/${bp.shards.length}…`);
-        const r = await fetch(`/outfit-packs/${bp.shards[i]}`);
+        const r = await fetch(appPath(`outfit-packs/${bp.shards[i]}`));
         if (!r.ok) throw new Error(`分片 ${bp.shards[i]} 下载失败（HTTP ${r.status}）`);
         packs.push(parseOutfitPack(await r.text()));
       }

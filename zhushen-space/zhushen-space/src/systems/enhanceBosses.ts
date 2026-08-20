@@ -1,4 +1,5 @@
 import { stageFromLevel } from './enhanceEngine';
+import { appPath } from './appPath';
 
 /* 强化老板分阶段立绘清单（public/enhance-bosses/manifest.json，由 vite 插件 syncEnhanceBosses 生成）。
    结构：{ "<老板文件夹>": { "1": [相对路径...], "2": [...], "3": [...], "4": [...] } }
@@ -11,7 +12,7 @@ let _loading: Promise<BossManifest> | null = null;
 export async function loadBossManifest(): Promise<BossManifest> {
   if (_manifest) return _manifest;
   if (_loading) return _loading;
-  _loading = fetch('/enhance-bosses/manifest.json')
+  _loading = fetch(appPath('enhance-bosses/manifest.json'))
     .then((r) => (r.ok ? r.json() : {}))
     .then((m) => { _manifest = ((m && typeof m === 'object') ? m : {}) as BossManifest; return _manifest!; })
     .catch(() => { _manifest = {}; return _manifest!; });
@@ -20,7 +21,7 @@ export async function loadBossManifest(): Promise<BossManifest> {
 
 /** 把相对路径转成可用 URL（中文路径段逐段 encode）*/
 function toUrl(rel: string): string {
-  return '/enhance-bosses/' + rel.split('/').map(encodeURIComponent).join('/');
+  return appPath('enhance-bosses/' + rel.split('/').map(encodeURIComponent).join('/'));
 }
 
 /** 取某老板在某强化等级对应阶段的一张随机立绘 URL；空阶段就近回退（先向低阶段、再向高阶段）。无图返回 null。*/

@@ -6,6 +6,7 @@
 import { mpBase } from './mpConfig';
 import { chatToken } from './chatIdentity';
 import { R2_STICKER_PACKS } from '../data/r2StickerPacks';   // R2 托管的大体积表情包（仅哈希清单·图在 R2）
+import { appPath } from './appPath';
 
 export interface StickerDef { id: string; label: string; svg?: string; url?: string; hash?: string }   // 内置=svg；文件夹直投=url；云端上传=hash
 export interface StickerPack { id: string; label: string; emoji: string; stickers: StickerDef[] }
@@ -85,13 +86,13 @@ export function loadStickerPacks(): Promise<void> {
   if (_loading) return _loading;
   _loading = (async () => {
     try {
-      const res = await fetch('/stickers/manifest.json', { cache: 'no-cache' });
+      const res = await fetch(appPath('stickers/manifest.json'), { cache: 'no-cache' });
       if (res.ok) {
         const raw = await res.json();
         filePacks = (Array.isArray(raw) ? raw : []).map((p: any): StickerPack => ({
           id: String(p.id), label: String(p.label || p.id), emoji: '🖼',
           stickers: (Array.isArray(p.stickers) ? p.stickers : []).map((s: any): StickerDef => ({
-            id: String(s.id), label: String(s.label || s.id), url: '/stickers/' + String(s.file),
+            id: String(s.id), label: String(s.label || s.id), url: appPath('stickers/' + String(s.file)),
           })),
         })).filter((p) => p.stickers.length);
       }

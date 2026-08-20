@@ -6,6 +6,7 @@
    - 移动端自动播放解锁交给 Howler 内置 autoUnlock（首次用户手势后解锁音频上下文）。*/
 import type { Howl as HowlT, HowlOptions } from 'howler';
 import { bgmBase } from '../bgmConfig';   // BGM 来源基址（本仓库自带 或 外部音乐库地址）
+import { appPath } from './appPath';
 
 type HowlerMod = typeof import('howler');
 let mod: HowlerMod | null = null;
@@ -44,7 +45,7 @@ function load(m: HowlerMod, file: string, loop: boolean): Promise<HowlT | null> 
       let i = 0;
       const tryNext = () => {
         if (i >= EXTS.length) { resolve(null); return; }
-        const url = `/audio/${file}.${EXTS[i++]}`;
+        const url = appPath(`audio/${file}.${EXTS[i++]}`);
         const h = new m.Howl({ src: [url], loop, html5: loop, preload: true, volume: loop ? 0 : clamp(settings.volume),
           onload: () => resolve(h), onloaderror: () => tryNext() } as HowlOptions);
       };

@@ -6,12 +6,13 @@ import { EN_EXACT } from './en';
 import { ensureViDict, getViExact } from './translate';   // vi 词库已改动态加载：勿再静态 import './vi'（会把 522KB 焊回 chunk）
 import { getSeen } from './seen';
 import { useSettings, type UiLang } from '../store/settingsStore';
+import { appPath } from '../systems/appPath';
 
 /** 组装某语言的可编辑映射表：{中文源: 译文或空}，按中文排序。 */
 export async function buildGlossaryTable(lang: UiLang): Promise<Record<string, string>> {
   let sources: string[] = [];
   try {
-    const res = await fetch('/ui-strings.json', { cache: 'no-cache' });
+    const res = await fetch(appPath('ui-strings.json'), { cache: 'no-cache' });
     if (res.ok) { const j = await res.json(); if (Array.isArray(j)) sources = j.map(String); }
   } catch { /* 取不到源全集就只用词库 key */ }
   // 内置词库：en 静态（32KB）；vi 按需拉（导出表是稀操作，就地 await；拉失败=只出用户覆盖与源 key，空译文可下次补）

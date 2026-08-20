@@ -5,6 +5,7 @@ import type { ApiConfig, WorldBook, WorldBookEntry } from './settingsStore';
 import { useSettings, parseWorldBook } from './settingsStore';
 import { reportFacilityOutcome } from '../systems/facilityBridge';
 import { getAllImg, putImg, delImg } from '../systems/imageDb';
+import { appPath } from '../systems/appPath';
 
 /* ════════════════════════════════════════════
    欢愉宫 store（drpg-joy）—— 完全对标装备强化（enhanceStore）
@@ -476,7 +477,7 @@ export async function hydrateJoyWorldBooks(force = false): Promise<void> {
   if (_joyWbLoaded && !force) return;
   _joyWbLoaded = true;
   try {
-    const res = await fetch('/joy-worldbooks/manifest.json');
+    const res = await fetch(appPath('joy-worldbooks/manifest.json'));
     if (!res.ok) return;
     const manifest: { file: string; name: string; key: string }[] = await res.json();
     if (!Array.isArray(manifest) || !manifest.length) return;
@@ -485,7 +486,7 @@ export async function hydrateJoyWorldBooks(force = false): Promise<void> {
     for (const m of manifest) {
       if (!m?.file || haveKey(m.key)) continue;
       try {
-        const r = await fetch('/joy-worldbooks/' + m.file);
+        const r = await fetch(appPath('joy-worldbooks/' + m.file));
         if (!r.ok) continue;
         const { entries } = parseWorldBook(await r.text(), m.name);
         adds.push({ id: `jwb_builtin_${m.key}`, name: m.name, entries, enabled: true, createdAt: Date.now(), builtin: true, builtinKey: m.key });

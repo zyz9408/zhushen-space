@@ -6,6 +6,7 @@
    编排：块拼接在 App.onJoySend；选择状态在 joyStore.selectedPlays；UI 在 JoyPanel 包间 🎲玩法 按钮。
 ════════════════════════════════════════════ */
 import { useJoy } from '../store/joyStore';
+import { appPath } from './appPath';
 
 export interface JoyPlay { name: string; category: string; content: string }
 export interface JoyPlayLib { version: number; categories: string[]; plays: JoyPlay[] }
@@ -19,7 +20,7 @@ let _loading: Promise<JoyPlayLib> | null = null;
 export async function loadJoyPlays(): Promise<JoyPlayLib> {
   if (_lib) return _lib;
   if (_loading) return _loading;
-  _loading = fetch('/joy-plays.json')
+  _loading = fetch(appPath('joy-plays.json'))
     .then((r) => (r.ok ? r.json() : null))
     .then((j) => {
       _lib = (j && Array.isArray(j.plays)) ? j as JoyPlayLib : { version: 0, categories: [], plays: [] };

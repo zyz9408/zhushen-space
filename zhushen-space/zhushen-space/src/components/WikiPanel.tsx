@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { appPath } from '../systems/appPath';
 
 /* 原著WIKI：内置的两部原著世界观百科（均为 Material for MkDocs 静态站，由 vite 插件 build-wiki 构建到 public/ 下）。
    点开先选书 → 全屏模态 + iframe 加载对应站 —— 纯本地静态资源（含 jieba 搜索/侧栏/主题），离线可用，不发网络请求。
@@ -21,7 +22,7 @@ const SITES: WikiSite[] = [
     name: '轮回乐园百科',
     book: '《轮回乐园》',
     icon: '🌀',
-    url: '/wiki/index.html',
+    url: appPath('wiki/index.html'),
     desc: '本游戏的世界观出处。阶位 · 天赋 · 技能体系 · 任务世界 · 契约者与随从',
     accent: '#22d3ee',
   },
@@ -30,7 +31,7 @@ const SITES: WikiSite[] = [
     name: '神秘复苏百科',
     book: '《神秘复苏》',
     icon: '👁',
-    url: '/wiki-shenmi/index.html',
+    url: appPath('wiki-shenmi/index.html'),
     desc: '都市灵异。厉鬼分级 · 亡魂道路 · 驾驭者 · 鬼物与凶宅',
     accent: '#2dd4bf',
   },

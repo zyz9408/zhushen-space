@@ -1,6 +1,7 @@
 /* 赌坊荷官：内置名册 + 立绘清单（public/casino-dealers/manifest.json，由 vite 插件 syncCasinoDealers 生成）。
    manifest 结构：{ "<荷官文件夹>": [相对路径...] }，served 于 /casino-dealers/ 下。
    无图时前端回退到 emoji 头像。设计见记忆 casino-feature。*/
+import { appPath } from './appPath';
 
 export interface DealerDef {
   id: string;
@@ -28,7 +29,7 @@ let _loading: Promise<DealerManifest> | null = null;
 export async function loadDealerManifest(): Promise<DealerManifest> {
   if (_manifest) return _manifest;
   if (_loading) return _loading;
-  _loading = fetch('/casino-dealers/manifest.json')
+  _loading = fetch(appPath('casino-dealers/manifest.json'))
     .then((r) => (r.ok ? r.json() : {}))
     .then((m) => { _manifest = ((m && typeof m === 'object') ? m : {}) as DealerManifest; return _manifest!; })
     .catch(() => { _manifest = {}; return _manifest!; });
@@ -36,7 +37,7 @@ export async function loadDealerManifest(): Promise<DealerManifest> {
 }
 
 function toUrl(rel: string): string {
-  return '/casino-dealers/' + rel.split('/').map(encodeURIComponent).join('/');
+  return appPath('casino-dealers/' + rel.split('/').map(encodeURIComponent).join('/'));
 }
 
 /** 取某荷官文件夹的一张随机立绘 URL；无图返回 null（前端回退 emoji）。 */

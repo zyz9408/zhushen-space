@@ -7,7 +7,8 @@
 /* 微软vista黑体（文件：public/fonts/msvista.woff2，由 ttf 压缩而来，~3.8MB） */
 @font-face {
   font-family: 'MSVistaHei';
-  src: url('/fonts/msvista.woff2') format('woff2');
+  /* CSS is emitted under assets/, so ../fonts works at both / and repository Pages bases. */
+  src: url('../fonts/msvista.woff2') format('woff2');
   font-weight: 400 700;
   font-display: swap;
 }

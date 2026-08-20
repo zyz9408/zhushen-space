@@ -14,6 +14,7 @@ import { isHomeWorld } from './playerVitals';
 import { wdApiBase } from './worldDetailShare';
 import { assembleInjection, BUDGET_SCALE } from './worldDetailInject';
 import { useSettings } from '../store/settingsStore';
+import { appPath } from './appPath';
 
 export type WorldDetail = { name: string; plot: string; cut?: string };
 type ShardRec = { p: string; c?: string };
@@ -36,7 +37,7 @@ async function fetchJson<T>(url: string): Promise<T | null> {
 }
 function loadManifest(): Promise<Manifest | null> {
   if (!manifestP) {
-    manifestP = fetchJson<Manifest>('/worlddetail/manifest.json').then((m) => {
+    manifestP = fetchJson<Manifest>(appPath('worlddetail/manifest.json')).then((m) => {
       const ok = m && m.worlds ? m : null;
       if (!ok) manifestP = null;   // 拉失败/无产物 → 不缓存失败，下次调用重试（无产物部署=每回合一次轻量 404，可忽略）
       return ok;
@@ -46,7 +47,7 @@ function loadManifest(): Promise<Manifest | null> {
 }
 function loadShard(i: number): Promise<Record<string, ShardRec> | null> {
   let p = shardP.get(i);
-  if (!p) { p = fetchJson<Record<string, ShardRec>>(`/worlddetail/s${i}.json`); shardP.set(i, p); }
+  if (!p) { p = fetchJson<Record<string, ShardRec>>(appPath(`worlddetail/s${i}.json`)); shardP.set(i, p); }
   return p;
 }
 
