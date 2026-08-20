@@ -30,6 +30,11 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: zhushen-space/zhushen-space/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Wiki builder
+        run: pip install -r ../../lunhui-wiki/requirements.txt
       - run: npm ci
       - run: npx vite build --base=/zhushen-space/
       - name: Configure Pages
