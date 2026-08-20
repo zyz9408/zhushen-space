@@ -97,6 +97,15 @@ function versionedBase(raw: string, defVer: string): string {
 /** gemini 拉模型列表回来的 name 形如 models/gemini-2.5-pro，拼 URL 前剥前缀 */
 function cleanModelId(m: string | undefined): string { return (m || '').replace(/^models\//, ''); }
 
+/** Gemini 3.6+（以及后续大版本）不再接受 assistant/model 预填充结尾，也废弃旧采样参数。 */
+function geminiUsesStrictTurns(model: string): boolean {
+  const m = cleanModelId(model).match(/^gemini-(\d+)(?:\.(\d+))?/i);
+  if (!m) return false;
+  const major = Number(m[1]);
+  const minor = Number(m[2] ?? 0);
+  return major > 3 || (major === 3 && minor >= 6);
+}
+
 /** 各协议的 chat 端点（UI 预览同用；gemini 的 key 走 x-goog-api-key 头，绝不进 URL） */
 export function chatUrlFor(api: ProtocolApi): string {
   const proto = protocolOf(api);
@@ -161,6 +170,7 @@ function anthropicBody(oaiBody: Record<string, unknown>, api: ProtocolApi): Reco
  *  采样参数进 generationConfig（驼峰）；model 在 URL 里不进 body；tools 原样透传（联网检索 {google_search:{}} REST 同名）。 */
 function geminiBody(oaiBody: Record<string, unknown>): Record<string, unknown> {
   const msgs = (oaiBody.messages as OaiMsg[] | undefined) ?? [];
+  const strictTurns = geminiUsesStrictTurns(String(oaiBody.model ?? ''));
   const sys: string[] = [];
   const contents: { role: 'user' | 'model'; parts: any[] }[] = [];
   for (const m of msgs) {
@@ -176,9 +186,15 @@ function geminiBody(oaiBody: Record<string, unknown>): Record<string, unknown> {
     else contents.push({ role, parts });
   }
   if (!contents.length || contents[0].role !== 'user') contents.unshift({ role: 'user', parts: [{ text: '（继续）' }] });
+  // 对齐 SillyTavern Strict 的占位思路：不删、不改 assistant 预填充，只补一个最小 user 回合。
+  // 这样确认对/预填充提示仍完整保留，同时满足 Gemini 3.6+「请求不得以 model 回合结尾」的新校验。
+  if (strictTurns && contents[contents.length - 1]?.role === 'model') {
+    contents.push({ role: 'user', parts: [{ text: '（继续）' }] });
+  }
   const gen: Record<string, unknown> = {};
-  if (oaiBody.temperature != null && Number.isFinite(Number(oaiBody.temperature))) gen.temperature = Number(oaiBody.temperature);
-  if (oaiBody.top_p != null && Number.isFinite(Number(oaiBody.top_p))) gen.topP = Number(oaiBody.top_p);
+  // Gemini 3.6+ 已废弃 temperature/top_p/top_k；旧模型仍保持原配置，避免改变既有生成效果。
+  if (!strictTurns && oaiBody.temperature != null && Number.isFinite(Number(oaiBody.temperature))) gen.temperature = Number(oaiBody.temperature);
+  if (!strictTurns && oaiBody.top_p != null && Number.isFinite(Number(oaiBody.top_p))) gen.topP = Number(oaiBody.top_p);
   const maxT = Number(oaiBody.max_tokens);
   if (Number.isFinite(maxT) && maxT > 0) gen.maxOutputTokens = maxT;
   if (oaiBody.seed != null && Number.isFinite(Number(oaiBody.seed))) gen.seed = Number(oaiBody.seed);

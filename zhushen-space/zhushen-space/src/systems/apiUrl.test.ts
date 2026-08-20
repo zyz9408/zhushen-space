@@ -196,6 +196,28 @@ describe('buildProtocolRequest · gemini', () => {
     expect(parts[1]).toEqual({ inlineData: { mimeType: 'image/png', data: 'AAAA' } });
     expect(r.body.tools).toEqual([{ google_search: {} }]);
   });
+  it('Gemini 3.7：保留 assistant 预填充并按 Strict 思路补末尾 user，占位不改提示词内容', () => {
+    const r = buildProtocolRequest({ baseUrl: 'https://generativelanguage.googleapis.com', protocol: 'gemini' }, 'k', {
+      model: 'gemini-3.7-flash', stream: true,
+      messages: [
+        { role: 'system', content: '规则' },
+        { role: 'user', content: '确认进入状态' },
+        { role: 'assistant', content: '已就位，开始续写。' },
+      ],
+    });
+    const contents = r.body.contents as any[];
+    expect(contents.map((c) => c.role)).toEqual(['user', 'model', 'user']);
+    expect(contents[1].parts[0].text).toBe('已就位，开始续写。');
+    expect(contents[2].parts[0].text).toBe('（继续）');
+    expect((r.body.systemInstruction as any).parts[0].text).toBe('规则');
+  });
+  it('Gemini 3.7：剔除已废弃采样参数，保留输出长度配置', () => {
+    const r = buildProtocolRequest({ baseUrl: 'https://generativelanguage.googleapis.com', protocol: 'gemini' }, 'k', {
+      model: 'gemini-3.7-flash', stream: true, temperature: 0.9, top_p: 0.95, max_tokens: 4096,
+      messages: [{ role: 'user', content: '开始' }],
+    });
+    expect(r.body.generationConfig).toEqual({ maxOutputTokens: 4096 });
+  });
 });
 
 describe('extractStreamDelta / Reasoning / Once', () => {
